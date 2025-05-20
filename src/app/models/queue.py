@@ -29,11 +29,9 @@ class Queue(Base):
     cancel_user_id = Column(Integer, ForeignKey('user.id'), default=0)
     doctor_id = Column(Integer, ForeignKey('doctor.id'), default=0)
     in_room = Column(Boolean, default=False)
-    upt = Column(Boolean, default=True)
     date = Column(Date, default=now_sanavaqt)
     complaint = Column(String, default="")
     responsible = Column(String, default="")
-    treatment = Column(String, default="")
     next_date = Column(Date, nullable=True)
 
 

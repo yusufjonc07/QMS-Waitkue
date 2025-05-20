@@ -17,7 +17,6 @@ class Doctor(Base):
     user_id = Column(Integer, ForeignKey('user.id'), default=0)
     cost = Column(Numeric, default=0)
     flat = Column(Numeric, default=1)
-    upt = Column(Boolean, default=True)
 
     service = relationship('Service', backref='doctors')
     user = relationship('User', backref='doctors', lazy="joined")       
