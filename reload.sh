@@ -1,0 +1,1 @@
+pip install ."[dev]" && docker-compose up --build
