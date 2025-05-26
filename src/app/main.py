@@ -41,8 +41,7 @@ def start():
 
 @app.get("/")
 async def get():
-
-    return 'Kilinika'
+    return 'WaitQue'
 
 @auth_router.post("/user/signup", description="This router is able to add new user and return user id")
 async def create_new_user(
@@ -56,4 +55,4 @@ app.include_router(queue_ws)
 app.include_router(routes)
 
 def main():
-    uvicorn.run("app.main:app", host="0.0.0.0", port=80, log_level="debug")
+    uvicorn.run("app.main:app", host="0.0.0.0", port=80, log_level="debug", reload=True)
