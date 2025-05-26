@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from app.models.doctor import Doctor
 from sqlalchemy.orm import subqueryload
 from app.models.user import User
-from . request import insert_req
+
 
 
 
@@ -39,11 +39,7 @@ def get_all_doctors(user_id, service_id, page, limit, usr, db):
         doctors = doctors.filter_by(service_id=service_id)
 
     doctors = doctors.options(
-        subqueryload(Doctor.user).load_only(
-            User.name,
-            User.disabled,
-            User.phone,
-        ),
+        subqueryload(Doctor.user),
         subqueryload(Doctor.service)
     ).order_by(Doctor.id.desc()).offset(offset).limit(limit).all()
 

@@ -4,7 +4,7 @@ from app.models.patient import Patient
 from app.models.user import User
 from sqlalchemy.orm import subqueryload, joinedload
 from sqlalchemy import or_
-from . request import insert_req
+
 
 def get_count_patients(search, usr, db):
 

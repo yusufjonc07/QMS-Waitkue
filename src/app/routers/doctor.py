@@ -1,9 +1,9 @@
     
+import math
 from app.utils import *
 from app.functions.doctor import *
 from app.models.doctor import *
-from app.schemas.doctor import *
-import math
+from app.schemas.specialist import *
 
 doctor_router = APIRouter(tags=['Doctor Endpoint'])
 
@@ -31,7 +31,7 @@ async def get_doctors_list(
 
 @doctor_router.post("/doctor/create", description="This router is able to add new doctor and return doctor id")
 async def create_new_doctor(
-    form_data: NewDoctor,
+    form_data: NewSpecialist,
     req: Request,
     db:Session = ActiveSession,
     usr: UserSchema = Depends(get_current_active_user)
@@ -48,7 +48,7 @@ async def create_new_doctor(
 @doctor_router.put("/doctor/{id}/update", description="This router is able to update doctor")
 async def update_one_doctor(
     id: int,
-    form_data: NewDoctor,
+    form_data: NewSpecialist,
     req: Request,
     db:Session = ActiveSession,
     usr: UserSchema = Depends(get_current_active_user)
