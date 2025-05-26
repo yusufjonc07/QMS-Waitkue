@@ -11,7 +11,6 @@ from .functions.user import create_user
 from sqlalchemy.orm import Session
 from app.db import ActiveSession
 from prometheus_fastapi_instrumentator import Instrumentator
-from app.routers.metrics import metrics_router
 
 
 app = FastAPI(
@@ -52,15 +51,9 @@ async def create_new_user(
 ):
     return create_user(form_data, None, db)
 
-app.include_router(metrics_router)
-app.include_router(gii_router)
 app.include_router(auth_router)
 app.include_router(queue_ws)
 app.include_router(routes)
 
-## Monitoring with prometheus instrumentator
-Instrumentator().instrument(app).expose(app)
-
 def main():
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, log_level="debug")
-    
+    uvicorn.run("app.main:app", host="0.0.0.0", port=80, log_level="debug")
