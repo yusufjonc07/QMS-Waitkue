@@ -5,19 +5,12 @@ from sqlalchemy.orm import joinedload
 from app.models.service import Service
 from app.models.user import User
 from app.models.doctor import Doctor
-from app.models.setting import Setting
-from app.models.income import Income
-from app.models.diagnosis import Diagnosis
-from app.models.recall import Recall
-from app.models.recipe import Recipe
 from app.models.patient import Patient, now_sanavaqt
 from app.manager import *
 from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
 import math
-from app.trlatin import tarjima
 from datetime import timedelta, datetime
-from .request import insert_req
 
 
 def get_count_queues(usr, db):
@@ -38,15 +31,9 @@ def get_all_queues(page, limit, usr, db, step, search, patient_id):
         .join(Queue.doctor) \
         .join(Doctor.user) \
         .options(
-            joinedload(Queue.doctor).subqueryload(Doctor.user).load_only(
-                User.name,
-                User.phone,
-            ),
+            joinedload(Queue.doctor).subqueryload(Doctor.user),
             joinedload(Queue.patient),
             joinedload(Queue.service),
-            joinedload(Queue.diagnosiss) \
-            .subqueryload(Diagnosis.recipes) \
-            .subqueryload(Recipe.drug),
         )
 
     if usr.role == 'doctor':
@@ -55,14 +42,10 @@ def get_all_queues(page, limit, usr, db, step, search, patient_id):
     if len(search) > 0:
         qs = qs.filter(
             or_(
-                Service.name.like(f"%{tarjima(search, 'uz')}%"),
-                Service.name.like(f"%{tarjima(search, 'ru')}%"),
-                Patient.name.like(f"%{tarjima(search, 'uz')}%"),
-                Patient.name.like(f"%{tarjima(search, 'ru')}%"),
-                Patient.phone.like(f"%{tarjima(search, 'uz')}%"),
-                Patient.phone.like(f"%{tarjima(search, 'ru')}%"),
-                User.name.like(f"%{tarjima(search, 'uz')}%"),
-                User.name.like(f"%{tarjima(search, 'ru')}%"),
+                Service.name.like(f"%{search}%"),
+                Patient.name.like(f"%{search}%"),
+                Patient.phone.like(f"%{search}%"),
+                User.name.like(f"%{search}%"),
             )       
         )
 
@@ -90,15 +73,9 @@ def read_queue(id, usr, db: Session):
         .join(Queue.doctor) \
         .join(Doctor.user) \
         .options(
-            joinedload(Queue.doctor).subqueryload(Doctor.user).load_only(
-                User.name,
-                User.phone,
-            ),
+            joinedload(Queue.doctor).subqueryload(Doctor.user),
             joinedload(Queue.patient),
             joinedload(Queue.service),
-            joinedload(Queue.diagnosiss) \
-            .subqueryload(Diagnosis.recipes) \
-            .subqueryload(Recipe.drug),
         ).filter(Queue.id == id).first()
     
 
@@ -137,15 +114,9 @@ def create_queue(form_data, p_id, usr, db):
 
 def get_unpaid_queues(db):
     return db.query(Queue).options(
-            joinedload(Queue.doctor).subqueryload(Doctor.user).load_only(
-                User.name,
-                User.phone,
-            ),
+            joinedload(Queue.doctor).subqueryload(Doctor.user),
             joinedload(Queue.patient),
             joinedload(Queue.service),
-            joinedload(Queue.diagnosiss) \
-            .subqueryload(Diagnosis.recipes) \
-            .subqueryload(Recipe.drug),
         ).filter_by(step=1).order_by(Queue.id.desc()).all()
 
 def update_queue(id, form_data, usr, db):
@@ -218,30 +189,10 @@ def complete_diagnosis_finish(id, usr, db):
     if theque:
         this_queue.update({Queue.step: 5, Queue.completed_at: now_sanavaqt, Queue.upt: True})
 
-        setting = db.query(Setting).first()
-
-        # if setting:
-        #     ADDING_HOURS = setting.recall_hour
-        # else:
-        #     ADDING_HOURS = 3
-
-        new_recall = Recall(
-            patient_id=theque.patient_id,
-            # plan_date=(now_sanavaqt+timedelta(hours=ADDING_HOURS)),
-            user_id=usr.id,
-            queue_id = theque.id
-        )
-
-        db.add(new_recall)
-        db.commit()
 
         next_queues = db.query(Queue).filter_by(patient_id=theque.patient_id, step=1).options(
             joinedload(Queue.doctor) \
-            .subqueryload(Doctor.user) \
-                .load_only(
-                User.name,
-                User.phone,
-            ),
+            .subqueryload(Doctor.user),
             joinedload(Queue.patient).subqueryload("*"),
             joinedload(Queue.service),
         ).all()
@@ -251,15 +202,9 @@ def complete_diagnosis_finish(id, usr, db):
             "next_queues": next_queues,
             "queue": db.query(Queue).options(
             joinedload(Queue.doctor) \
-            .subqueryload(Doctor.user) \
-                .load_only(
-                User.name,
-                User.phone,
-            ),
+            .subqueryload(Doctor.user),
             joinedload(Queue.patient).subqueryload("*"),
             joinedload(Queue.service),
-            joinedload(Queue.diagnosiss),
-            joinedload(Queue.recipes).subqueryload(Recipe.drug),
         ).filter_by(id=id).first()
         } 
 
@@ -275,8 +220,7 @@ def cancel_queue(id, usr, db):
     if this_queue.first():
         if this_queue.first().step < 4:
 
-            this_queue.update({Queue.step: 0, Queue.cancel_user_id: usr.id, Queue.upt: True})
-            db.query(Income).filter_by(queue_id=id).delete()
+            this_queue.update({Queue.step: 0, Queue.cancel_user_id: usr.id})
 
             db.commit()
 

@@ -1,10 +1,8 @@
 from typing import Optional, List  
 from app.utils import *
 from app.functions.queue import *
-from app.functions.income import *
 from app.models.queue import *
 from app.schemas.queue import *
-from app.schemas.income import *
 from app.manager import *
 from datetime import date as now_date
 from datetime import time
@@ -54,21 +52,6 @@ async def create_new_queue(
     else:
         raise HTTPException(status_code=400, detail="Sizga ruxsat berilmagan!")
 
-
-@queue_router.post("/cashreg/confirm", description="This router is able to add new income and return income id")
-async def create_new_income(
-    form_data: NewIncome,
-    req: Request,
-    db:Session = ActiveSession,
-    usr: UserSchema = Depends(get_current_active_user)
-):
-    if not usr.role in ['any_role']:
-        res = create_income(form_data, usr, db)
-        if res:
-            
-            return res
-    else:
-        raise HTTPException(status_code=400, detail="Sizga ruxsat berilmagan!")
 
 
 @queue_router.post("/queue_toggle_skipped", description="This router is able to add new income and return income id")
